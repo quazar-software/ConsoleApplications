@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ConsoleAppCPP/ConsoleAppCPP.vcxproj" Id="dd3b6246-b32f-4252-b9b5-05835561ec6d" />
+  <Project Path="ConsoleAppSharp/ConsoleAppSharp.csproj" />
+</Solution>
