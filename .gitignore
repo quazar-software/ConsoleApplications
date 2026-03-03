@@ -39,3 +39,11 @@
 
 # debug information files
 *.dwo
+/ConsoleAppSharp/obj/Debug/net8.0
+/ConsoleAppSharp/obj
+/packages/quazar-full-libs.1.1.0
+/ConsoleAppCPP/x64/Debug
+/ConsoleAppCPP/x64/Release
+/ConsoleAppCPP/ConsoleAppCPP.vcxproj.user
+/.vs
+/ConsoleAppSharp/bin/Debug/net8.0
