@@ -14,10 +14,21 @@
 class COptions : public qstd::CQLoggerUserAppCfg
 {
 public:
-	COptions(const qstd::qstr& sAppName) : CQLoggerUserAppCfg(sAppName) {
+	COptions(const qstd::qstr& sAppName) : CQLoggerUserAppCfg(sAppName), _nSomeValue(0) {
 
 	}
-	qstd::qstr sInputFile;	// some more parameter
+	// Input File property getter and setter
+	const qstd::qstr& InputFile() const { return _sInputFile; }
+	qstd::qstr& InputFile() { return _sInputFile; }
+	
+	// Some Value property getter and setter
+	const int& SomeValue() const { return _nSomeValue; }
+	int& SomeValue() { return _nSomeValue; }
+
+private:
+	// some more parameter
+	qstd::qstr _sInputFile;	
+	int _nSomeValue;		
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,8 +36,9 @@ public:
 
 static void usage()
 {
-	_tprintf(_qc("usage  : myapp [options] Parameter 1 [Parameter 2]\n")
+	_tprintf(_qc("usage  : myapp [options] <input file> [Parameter 2]\n")
 		_qc("options: \n")
+		_qc("-value <number>    some value\n")
 		_qc("-l [outfile]       logfile\n")
 		_qc("-ll                log level\n")
 	);
@@ -46,6 +58,23 @@ static void dump_version(void)
 		_tprintf(_qc("%s V%s - %s\n"), app.GetInternalName().c_str(), app.GetFileVersion().c_str(), app.GetFileDescription().c_str());
 		_tprintf(_qc("(c) %s. All rights reserved\n"), app.GetLegalCopyright().c_str());
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Parameter error handles the case to missmíng values or other command line error
+//
+// 		  	sErrorMsg	Message describing the error.
+// [in,out]	prc		 	store return code here.
+// 		  	rcCode   	(Optional) return code default
+//
+// returns	false always to signal application should terminate
+//
+
+static bool paramError(const qstd::qstr& sErrorMsg, int* prc, int rcCode = 1)
+{
+	*prc = rcCode;
+	qstd::dprintf(qstd::DbgType::XDBG_TYPE_ERROR, _qc("ERROR: %s\n"), sErrorMsg.c_str());
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +109,9 @@ static bool parseArguments(COptions* pOpt, int argc, const _TCHAR* const argv[],
 			dump_version();
 			return false;
 		}
+		else if (arg.IsOption(_qc("value"))) {	// -value <number>
+			if (!cmd.GetOptionParameter(&pOpt->SomeValue())) return paramError(_qc("some value missing"), prc);
+		}
 		else if (arg.IsOption(_qc("l"))) {	// -l [filename]
 			qstd::qstr s = _qc("myapp.log");
 			cmd.GetOptionParameter(&(s));
@@ -87,20 +119,14 @@ static bool parseArguments(COptions* pOpt, int argc, const _TCHAR* const argv[],
 		}
 		else if (arg.IsOption(_qc("ll"))) { // -ll <level>
 			qstd::qstr level;
-			if (!cmd.GetOptionParameter(&level)) {
-				*prc = 1;
-				qstd::dprintf(qstd::DbgType::XDBG_TYPE_ERROR, _qc("ERROR: log level missing\n"));
-				return false;
-			}
-			pOpt->Level(qstd::MakeLevel(level));		// take it to the model			
+			if (!cmd.GetOptionParameter(&level)) return paramError(_qc("log level missing"), prc);
+			pOpt->Level(qstd::MakeLevel(level));	// take it to the model			
 		}
-		else if (arg.ParameterNo() == 1) {		// not an option than the found the first parameter
-			pOpt->sInputFile = arg.Get();		// take it to the model
+		else if (arg.ParameterNo() == 1) {			// not an option than the found the first parameter
+			pOpt->InputFile() = arg.Get();			// take it to the model
 		}
 		else {
-			qstd::dprintf(qstd::DbgType::XDBG_TYPE_ERROR, _qc("ERROR: unknown argument\n"));
-			*prc = 1;
-			return false;
+			return paramError(_qc("unknown argument"),prc,2);
 		}
 	}
 	return true;
